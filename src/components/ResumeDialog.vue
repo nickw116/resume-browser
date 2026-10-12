@@ -149,6 +149,11 @@ async function act(action: Action) {
         </div>
       </div>
 
+      <div v-if="candidate.remark" class="p-section">
+        <p class="p-title">备注</p>
+        <p class="p-desc">{{ candidate.remark }}</p>
+      </div>
+
       <div class="p-section">
         <p class="p-title">约面确认</p>
         <template v-if="status === 'PENDING' || status === 'DECLINED'">
