@@ -249,8 +249,14 @@ onMounted(loadOrg);
 .browser {
   display: flex;
   gap: 16px;
-  align-items: flex-start;
+  align-items: stretch;
   padding: 16px;
+}
+
+.tree-card,
+.list-card {
+  max-height: calc(100vh - 92px);
+  overflow: auto;
 }
 
 .tree-card {
