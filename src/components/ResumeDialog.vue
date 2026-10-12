@@ -12,6 +12,7 @@ const emit = defineEmits<{ changed: [] }>();
 
 const acting = ref(false);
 const chosenSlotId = ref<number | null>(null);
+const photoPreview = ref(false);
 
 const role = getUser()?.role ?? "hr";
 // 店长可操作约面确认和面试结果；入职确认和重置仅管理员/fahr；客户hr 只读
@@ -108,10 +109,15 @@ async function act(action: Action) {
 </script>
 
 <template>
-  <el-dialog v-model="visible" :title="`电子简历 · ${candidate?.name ?? ''}`" width="560px">
+  <el-dialog v-model="visible" :title="`电子简历 · ${candidate?.name ?? ''}`" width="720px">
     <div v-if="candidate" class="body">
       <div class="p-head">
-        <el-avatar :size="56" :src="candidate.photo ? withBase(candidate.photo) : undefined">
+        <el-avatar
+          :size="72"
+          :src="candidate.photo ? withBase(candidate.photo) : undefined"
+          :class="{ 'avatar-clickable': candidate.photo }"
+          @click="candidate.photo && (photoPreview = true)"
+        >
           {{ candidate.name.slice(0, 1) }}
         </el-avatar>
         <div class="p-head-info">
@@ -217,6 +223,13 @@ async function act(action: Action) {
         </el-button>
       </div>
     </div>
+
+    <el-image-viewer
+      v-if="photoPreview && candidate?.photo"
+      :url-list="[withBase(candidate.photo)]"
+      teleported
+      @close="photoPreview = false"
+    />
   </el-dialog>
 </template>
 
@@ -234,19 +247,23 @@ async function act(action: Action) {
 
 .p-name {
   margin: 0;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 600;
 }
 
 .p-meta {
   margin: 4px 0 0;
   color: #606266;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .p-store {
   color: #909399;
-  font-size: 12px;
+  font-size: 13px;
+}
+
+.avatar-clickable {
+  cursor: zoom-in;
 }
 
 .p-steps {
@@ -258,8 +275,8 @@ async function act(action: Action) {
 }
 
 .p-title {
-  margin: 0 0 8px;
-  font-size: 14px;
+  margin: 0 0 10px;
+  font-size: 15px;
   font-weight: 600;
   border-left: 3px solid #409eff;
   padding-left: 8px;
@@ -283,24 +300,24 @@ async function act(action: Action) {
 
 .p-company {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .p-period {
   color: #909399;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .p-desc {
   margin: 4px 0 0;
   color: #606266;
-  font-size: 13px;
+  font-size: 14px;
   white-space: pre-wrap;
 }
 
 .p-hint {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: #606266;
 }
 
@@ -314,11 +331,11 @@ async function act(action: Action) {
 .slot-radio {
   margin-right: 0;
   height: auto;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .p-slot {
-  font-size: 13px;
+  font-size: 14px;
   color: #606266;
   line-height: 1.8;
 }

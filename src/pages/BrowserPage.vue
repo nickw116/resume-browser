@@ -31,6 +31,7 @@ const selected = ref<{ level: "brand" | "city" | "store"; id: number; label: str
 
 const detailVisible = ref(false);
 const detailCandidate = ref<CandidateRow | null>(null);
+const photoPreviewUrl = ref("");
 
 const treeData = computed<TreeNode[]>(() =>
   brands.value.map((b) => ({
@@ -137,7 +138,7 @@ onMounted(loadOrg);
 
     <div class="browser">
       <el-card class="tree-card" shadow="never">
-        <p class="card-title">组织架构</p>
+        <p class="card-title">店铺清单</p>
         <el-tree
           :data="treeData"
           :props="treeProps"
@@ -147,7 +148,7 @@ onMounted(loadOrg);
           @node-click="onNodeClick"
         >
           <template #default="{ data }">
-            <span class="tree-node">
+            <span class="tree-node" :class="`lv-${data.level}`">
               <span>{{ data.label }}</span>
               <span v-if="data.level === 'store' && data.count !== undefined" class="tree-count">
                 {{ data.count }}
@@ -169,7 +170,12 @@ onMounted(loadOrg);
           <el-empty v-if="!candidates.length && !loading" description="该节点下暂无人员" :image-size="80" />
           <div class="grid">
             <div v-for="c in candidates" :key="c.id" class="person">
-              <el-avatar :size="44" :src="c.photo ? withBase(c.photo) : undefined">
+              <el-avatar
+                :size="44"
+                :src="c.photo ? withBase(c.photo) : undefined"
+                :class="{ 'avatar-clickable': c.photo }"
+                @click.stop="c.photo && (photoPreviewUrl = withBase(c.photo))"
+              >
                 {{ c.name.slice(0, 1) }}
               </el-avatar>
               <div class="person-info">
@@ -202,6 +208,12 @@ onMounted(loadOrg);
     </div>
 
     <ResumeDialog v-model="detailVisible" :candidate="detailCandidate" @changed="load" />
+    <el-image-viewer
+      v-if="photoPreviewUrl"
+      :url-list="[photoPreviewUrl]"
+      teleported
+      @close="photoPreviewUrl = ''"
+    />
   </div>
 </template>
 
@@ -242,26 +254,57 @@ onMounted(loadOrg);
 }
 
 .tree-card {
-  width: 260px;
+  width: 280px;
   flex-shrink: 0;
 }
 
-.card-title {
-  margin: 0 0 12px;
-  font-size: 15px;
-  font-weight: 600;
+.tree-card :deep(.el-tree-node__content) {
+  height: 38px;
+  border-radius: 6px;
+}
+
+.tree-card :deep(.el-tree-node__content:hover) {
+  background-color: #f0f7ff;
 }
 
 .tree-node {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.lv-brand {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.lv-city {
+  font-size: 15px;
+}
+
+.lv-store {
+  font-size: 14px;
+  color: #303133;
 }
 
 .tree-count {
-  color: #909399;
+  background: #ecf5ff;
+  color: #409eff;
+  border-radius: 10px;
+  padding: 0 8px;
   font-size: 12px;
+  line-height: 20px;
+}
+
+.card-title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.avatar-clickable {
+  cursor: zoom-in;
 }
 
 .list-card {
