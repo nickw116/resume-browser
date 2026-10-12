@@ -267,7 +267,22 @@ async function act(action: Action) {
 }
 
 .p-steps {
-  margin: 20px 0 4px;
+  margin: 14px 0 0;
+}
+
+.p-steps :deep(.el-step__icon) {
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+}
+
+.p-steps :deep(.el-step__title) {
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.p-steps :deep(.el-step__line) {
+  top: 10px;
 }
 
 .p-section {
