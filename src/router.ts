@@ -2,12 +2,15 @@ import { createRouter, createWebHistory } from "vue-router";
 import { getToken } from "./auth";
 import LoginPage from "./pages/LoginPage.vue";
 import BrowserPage from "./pages/BrowserPage.vue";
+import SchedulePage from "./pages/SchedulePage.vue";
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: "/login", component: LoginPage, meta: { public: true, title: "登录" } },
-    { path: "/", component: BrowserPage, meta: { title: "电子简历" } },
+    { path: "/", component: BrowserPage, meta: { title: "首页" } },
+    { path: "/schedule", component: SchedulePage, meta: { title: "Schedule" } },
+    { path: "/cv", redirect: "/" },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
 });
