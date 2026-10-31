@@ -6,18 +6,23 @@ import { api, withBase } from "../api";
 import { getUser } from "../auth";
 import { STATUS_LABEL, STATUS_TAG } from "../status";
 import { type BrandNode, type CandidateRow } from "../types";
+import { columnWidth } from "../autoWidth";
 import ResumeDialog from "../components/ResumeDialog.vue";
 import RequirementFormDialog from "../components/RequirementFormDialog.vue";
 import RequirementListDrawer from "../components/RequirementListDrawer.vue";
 import PageHeader from "../components/PageHeader.vue";
+import PageNav from "../components/PageNav.vue";
 
 interface TreeNode {
   key: string;
   label: string;
-  level: "brand" | "city" | "store";
+  level: "store";
   id: number;
   count?: number;
-  children?: TreeNode[];
+  /** 品牌 · 城市，作为店铺的次级信息 */
+  meta?: string;
+  /** 所属品牌名，用于页面标题 */
+  brandName?: string;
 }
 
 const user = getUser();
@@ -28,7 +33,7 @@ const loading = ref(false);
 const page = ref(1);
 const pageSize = ref(12);
 const total = ref(0);
-const selected = ref<{ level: "brand" | "city" | "store"; id: number; label: string } | null>(null);
+const selected = ref<{ level: "store"; id: number; label: string; brandName?: string } | null>(null);
 
 // 筛选标签：全部 / 待筛选 / 待面试 / 已完成
 type TabKey = "ALL" | "PENDING" | "ACCEPTED" | "DONE";
@@ -58,35 +63,47 @@ const reqListVisible = ref(false);
 const reqListRef = ref<InstanceType<typeof RequirementListDrawer> | null>(null);
 
 // 店长/管理员/FaHr 可提交用人需求；客户HR 只读查看进度
-const canSubmitRequirement = ["admin", "fahr", "manager"].includes(user?.role ?? "");
+const canSubmitRequirement = ["admin", "fahr", "manager", "hr"].includes(user?.role ?? "");
 
 function onRequirementSubmitted() {
   reqListRef.value?.reload();
 }
 
+/** 组织架构只展示店铺一层，品牌与城市作为次级信息 */
 const treeData = computed<TreeNode[]>(() =>
-  brands.value.map((b) => ({
-    key: `brand-${b.id}`,
-    label: b.name,
-    level: "brand",
-    id: b.id,
-    children: b.cities.map((c) => ({
-      key: `city-${c.id}`,
-      label: c.name,
-      level: "city",
-      id: c.id,
-      children: c.stores.map((s) => ({
+  brands.value.flatMap((b) =>
+    b.cities.flatMap((c) =>
+      c.stores.map((s) => ({
         key: `store-${s.id}`,
         label: s.name,
-        level: "store",
+        level: "store" as const,
         id: s.id,
         count: s._count?.candidates,
+        meta: `${b.name} · ${c.name}`,
+        brandName: b.name,
       })),
-    })),
-  })),
+    ),
+  ),
 );
 
+/** 页面标题用品牌名称：优先当前选中店铺所属品牌 */
+const brandTitle = computed(() => {
+  if (selected.value?.brandName) return selected.value.brandName;
+  if (brands.value.length === 1) return brands.value[0].name;
+  if (brands.value.length > 1) return "全部品牌";
+  return "";
+});
+
 const treeProps = { label: "label", children: "children" };
+
+/** 按当前数据的文本长度自动计算列宽 */
+function widthOf(
+  get: (row: CandidateRow) => string | null | undefined,
+  header: string,
+  opts?: { min?: number; max?: number },
+) {
+  return columnWidth(candidates.value, get, header, opts);
+}
 
 const isMobile = ref(window.matchMedia("(max-width: 768px)").matches);
 const drawerVisible = ref(false);
@@ -106,11 +123,7 @@ async function load() {
     const params = new URLSearchParams();
     params.set("published", "1");
     const sel = selected.value;
-    if (sel) {
-      if (sel.level === "brand") params.set("brandId", String(sel.id));
-      else if (sel.level === "city") params.set("cityId", String(sel.id));
-      else params.set("storeId", String(sel.id));
-    }
+    if (sel) params.set("storeId", String(sel.id));
     const tab = TABS.find((t) => t.key === activeTab.value);
     const effectiveStatus =
       activeTab.value === "DONE" && subTab.value ? subTab.value : tab?.status;
@@ -130,7 +143,7 @@ async function load() {
 }
 
 function onNodeClick(node: TreeNode) {
-  selected.value = { level: node.level, id: node.id, label: node.label };
+  selected.value = { level: "store", id: node.id, label: node.label, brandName: node.brandName };
   drawerVisible.value = false;
   page.value = 1;
   load();
@@ -173,9 +186,9 @@ onMounted(() => {
     <div class="page-head">
       <div class="ph-main">
         <div class="eyebrow">Resume Browser</div>
-        <h1 class="ph-title">简历浏览</h1>
-        <p class="ph-desc">按品牌 / 城市 / 店铺筛选，查看已发布的候选人简历与当前流程状态</p>
+        <h1 class="ph-title">{{ brandTitle }}</h1>
       </div>
+      <PageNav active="browser" />
       <div class="ph-actions">
         <el-button size="small" @click="reqListVisible = true">需求进度</el-button>
         <el-button
@@ -200,9 +213,10 @@ onMounted(() => {
       <el-card v-else class="tree-card" shadow="never">
         <div class="tree-head">
           <div class="eyebrow">组织架构</div>
-          <span class="tree-hint">品牌 / 城市 / 店铺</span>
+          <span class="tree-hint">店铺</span>
         </div>
         <el-tree
+          class="tree-flat"
           :data="treeData"
           :props="treeProps"
           node-key="key"
@@ -211,11 +225,12 @@ onMounted(() => {
           @node-click="onNodeClick"
         >
           <template #default="{ data }">
-            <span class="tree-node" :class="`lv-${data.level}`">
-              <span>{{ data.label }}</span>
-              <span v-if="data.level === 'store' && data.count !== undefined" class="tree-count">
-                {{ data.count }}
+            <span class="tree-node lv-store">
+              <span class="tree-text">
+                <span class="tree-label">{{ data.label }}</span>
+                <span v-if="data.meta" class="tree-meta">{{ data.meta }}</span>
               </span>
+              <span v-if="data.count !== undefined" class="tree-count">{{ data.count }}</span>
             </span>
           </template>
         </el-tree>
@@ -250,7 +265,10 @@ onMounted(() => {
         </template>
 
         <el-table v-loading="loading" class="data-table" :data="candidates" style="width: 100%">
-          <el-table-column label="姓名" min-width="180">
+          <el-table-column
+            label="姓名"
+            :min-width="widthOf((r) => r.name, '姓名', { min: 150, max: 240 })"
+          >
             <template #default="{ row }">
               <div class="cell-person">
                 <el-avatar
@@ -272,7 +290,10 @@ onMounted(() => {
             </template>
           </el-table-column>
 
-          <el-table-column label="门店" min-width="170">
+          <el-table-column
+            label="门店"
+            :min-width="widthOf((r) => r.store.name, '门店', { min: 150, max: 260 })"
+          >
             <template #default="{ row }">
               <div class="cell-store">
                 <span class="cell-store-name">{{ row.store.name }}</span>
@@ -319,11 +340,12 @@ onMounted(() => {
       </el-card>
     </div>
 
-    <el-drawer v-model="drawerVisible" direction="ltr" size="72%" title="选择品牌 / 城市 / 店铺">
+    <el-drawer v-model="drawerVisible" direction="ltr" size="72%" title="选择店铺">
       <div class="drawer-all" :class="{ sel: !selected }" @click="clearSelection(); drawerVisible = false">
         全部店铺
       </div>
       <el-tree
+        class="tree-flat"
         :data="treeData"
         :props="treeProps"
         node-key="key"
@@ -332,11 +354,12 @@ onMounted(() => {
         @node-click="onNodeClick"
       >
         <template #default="{ data }">
-          <span class="tree-node" :class="`lv-${data.level}`">
-            <span>{{ data.label }}</span>
-            <span v-if="data.level === 'store' && data.count !== undefined" class="tree-count">
-              {{ data.count }}
+          <span class="tree-node lv-store">
+            <span class="tree-text">
+              <span class="tree-label">{{ data.label }}</span>
+              <span v-if="data.meta" class="tree-meta">{{ data.meta }}</span>
             </span>
+            <span v-if="data.count !== undefined" class="tree-count">{{ data.count }}</span>
           </span>
         </template>
       </el-tree>
@@ -397,24 +420,36 @@ onMounted(() => {
 .tree-node {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
   font-size: 13px;
 }
 
-.lv-brand {
-  font-weight: 600;
-  color: var(--text-1);
+/* 两行内容，节点高度要放开 */
+.tree-card :deep(.tree-flat .el-tree-node__content) {
+  height: auto;
+  min-height: 34px;
+  padding: 4px 0;
 }
 
-.lv-city {
-  color: var(--text-1);
+.tree-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
 }
 
-.lv-store {
-  font-size: 12.5px;
-  color: var(--text-2);
+.tree-label {
+  font-size: 13px;
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+
+.tree-meta {
+  font-size: 11px;
+  color: var(--text-3);
+  overflow-wrap: anywhere;
 }
 
 .tree-count {
@@ -596,5 +631,14 @@ onMounted(() => {
   .pager {
     padding: 0 14px 14px;
   }
+}
+</style>
+
+<style>
+/* 抽屉里的组织树 teleport 到 body，scoped 规则匹配不到，这里用全局类兜底 */
+.tree-flat .el-tree-node__content {
+  height: auto;
+  min-height: 34px;
+  padding: 4px 0;
 }
 </style>

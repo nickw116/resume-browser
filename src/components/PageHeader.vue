@@ -1,19 +1,13 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import { ArrowDown } from "@element-plus/icons-vue";
 import { api } from "../api";
 import { clearAuth, getUser } from "../auth";
 import { ROLE_LABEL, ROLE_TAG } from "../types";
 import NotificationBell from "./NotificationBell.vue";
 
-const route = useRoute();
 const router = useRouter();
 const user = getUser();
-
-const navItems = [
-  { path: "/", label: "简历浏览" },
-  { path: "/schedule", label: "面试日程" },
-];
 
 async function logout() {
   try {
@@ -37,17 +31,6 @@ async function logout() {
         </span>
       </router-link>
 
-      <nav class="nav">
-        <router-link
-          v-for="n in navItems"
-          :key="n.path"
-          :to="n.path"
-          class="nav-item"
-          :class="{ active: route.path === n.path }"
-        >
-          {{ n.label }}
-        </router-link>
-      </nav>
     </div>
 
     <div class="header-actions">
@@ -117,57 +100,17 @@ async function logout() {
 }
 
 .brand-name {
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.01em;
   color: var(--text-1);
 }
 
 .brand-sub {
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
+  font-size: 10px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-3);
-}
-
-/* ---------- 导航 ---------- */
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
-
-.nav-item {
-  position: relative;
-  padding: 6px 2px;
-  font-size: 13.5px;
-  color: var(--text-2);
-  text-decoration: none;
-  transition: color 0.18s var(--ease);
-}
-
-.nav-item::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 1.5px;
-  background: transparent;
-  transition: background-color 0.18s var(--ease);
-}
-
-.nav-item:hover {
-  color: var(--text-1);
-}
-
-.nav-item.active {
-  color: var(--text-1);
-  font-weight: 500;
-}
-
-.nav-item.active::after {
-  background: var(--forest-600);
 }
 
 /* ---------- 右侧 ---------- */
@@ -231,10 +174,6 @@ async function logout() {
 
   .brand-sub {
     display: none;
-  }
-
-  .nav {
-    gap: 16px;
   }
 
   .header-actions {

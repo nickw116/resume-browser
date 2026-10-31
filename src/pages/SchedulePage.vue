@@ -6,6 +6,7 @@ import { api, withBase } from "../api";
 import { STATUS_LABEL, STATUS_TAG, INTERVIEW_METHOD_LABEL } from "../status";
 import type { CandidateRow, InterviewSlot } from "../types";
 import PageHeader from "../components/PageHeader.vue";
+import PageNav from "../components/PageNav.vue";
 import ResumeDialog from "../components/ResumeDialog.vue";
 
 interface InterviewItem {
@@ -156,8 +157,8 @@ onMounted(load);
       <div class="ph-main">
         <div class="eyebrow">Interview Schedule</div>
         <h1 class="ph-title">面试日程</h1>
-        <p class="ph-desc">按月查看已约定的面试安排，点击日期可展开当天面试明细</p>
       </div>
+      <PageNav active="schedule" />
       <div class="ph-actions">
         <el-button size="small" @click="prevMonth">
           <el-icon><ArrowLeft /></el-icon>
@@ -393,9 +394,7 @@ onMounted(load);
   border-left: 2px solid var(--forest-600);
   border-radius: var(--radius-xs);
   padding: 2px 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
   color: var(--text-1);
 }
 

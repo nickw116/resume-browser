@@ -1,70 +1,95 @@
 /* ==========================================================================
    Recruit Workbench · 设计系统
-   黑白灰基调 + 深林深绿点缀 / Editorial Console
+   Editorial Console —— 黑白灰 + 一抹深林深绿
+   字体：Instrument Sans（UI） / 思源宋体 Noto Serif SC（中文标题） / Instrument Serif（英文展示）
    两个项目共用同一套 token，改动请保持同步
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   1. 字体
+   -------------------------------------------------------------------------- */
 @font-face {
-  font-family: "Inter";
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/instrument-sans-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Instrument Serif";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/inter-regular.woff2") format("woff2");
+  src: url("/fonts/instrument-serif-latin-400-normal.woff2") format("woff2");
 }
+
 @font-face {
-  font-family: "Inter";
+  font-family: "Noto Serif SC";
   font-style: normal;
-  font-weight: 500;
+  font-weight: 400;
   font-display: swap;
-  src: url("/fonts/inter-medium.woff2") format("woff2");
+  src: url("/fonts/noto-serif-sc-chinese-simplified-400-normal.woff2") format("woff2");
+  unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF, U+2000-206F, U+2E80-2EFF;
 }
+
 @font-face {
-  font-family: "Inter";
+  font-family: "Noto Serif SC";
   font-style: normal;
-  font-weight: 600;
+  font-weight: 400;
   font-display: swap;
-  src: url("/fonts/inter-semibold.woff2") format("woff2");
+  src: url("/fonts/noto-serif-sc-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 /* --------------------------------------------------------------------------
-   1. Design Tokens
+   2. Design Tokens
    -------------------------------------------------------------------------- */
 :root {
-  /* 中性色阶（带一点点冷绿倾向，避免死灰的廉价感） */
-  --ink-900: #0e1211;
-  --ink-800: #14181a;
-  --ink-700: #1c221f;
-  --ink-600: #2a312d;
-  --ink-500: #464e49;
-  --ink-400: #656d68;
+  /* 中性色阶：带一丝暖调的纸感灰，避免冷灰的廉价感 */
+  --ink-900: #0f1211;
+  --ink-800: #151918;
+  --ink-700: #1e2321;
+  --ink-600: #2c332f;
+  --ink-500: #454d48;
+  --ink-400: #646c67;
   --ink-300: #8b938e;
-  --ink-200: #c3cac5;
-  --ink-100: #e2e6e3;
-  --ink-050: #f0f2f1;
-  --ink-025: #f7f8f7;
+  --ink-200: #c6cbc7;
+  --ink-100: #e4e6e3;
+  --ink-050: #f0f1ef;
+  --ink-025: #f7f8f6;
 
   /* 深林深绿 —— 唯一彩色 */
-  --forest-900: #0f251b;
-  --forest-800: #163026;
+  --forest-900: #0e241a;
+  --forest-800: #143026;
   --forest-700: #1a3b2d;
-  --forest-600: #1f4636;
-  --forest-500: #2a5c47;
-  --forest-400: #4d7a67;
-  --forest-300: #8fb4a3;
-  --forest-100: #e2ede7;
-  --forest-050: #f0f5f2;
+  --forest-600: #1d4434;
+  --forest-500: #275a45;
+  --forest-400: #4a7a66;
+  --forest-300: #8cb3a2;
+  --forest-100: #e1ebe6;
+  --forest-050: #f0f4f1;
 
   /* 语义别名 */
-  --canvas: #f6f7f6;
+  --canvas: #f5f5f3;
   --surface: #ffffff;
-  --surface-2: #fbfcfb;
-  --surface-3: #f7f8f7;
-  --border: #e4e8e5;
-  --border-strong: #d3d9d5;
-  --text-1: #171c19;
-  --text-2: #5e6763;
-  --text-3: #8d9590;
+  --surface-2: #fafaf8;
+  --surface-3: #f6f6f4;
+  --border: #e5e6e2;
+  --border-strong: #d4d6d1;
+  --text-1: #141815;
+  --text-2: #5a625d;
+  --text-3: #8a918c;
   --text-invert: #ffffff;
+
+  /* 字体 */
+  --font-sans:
+    "Instrument Sans", "Inter", -apple-system, BlinkMacSystemFont, "Avenir Next",
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-serif:
+    "Noto Serif SC", "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif;
+  --font-display: "Instrument Serif", "Noto Serif SC", "Songti SC", serif;
 
   /* 圆角 / 阴影 / 动效 */
   --radius-xs: 6px;
@@ -73,31 +98,31 @@
   --radius-lg: 14px;
   --radius-pill: 999px;
 
-  --shadow-xs: 0 1px 2px rgba(16, 24, 20, 0.05);
-  --shadow-sm: 0 1px 2px rgba(16, 24, 20, 0.04), 0 6px 16px -8px rgba(16, 24, 20, 0.12);
-  --shadow-md: 0 10px 30px -14px rgba(16, 24, 20, 0.24), 0 2px 6px rgba(16, 24, 20, 0.05);
-  --shadow-lg: 0 28px 64px -24px rgba(16, 24, 20, 0.38);
-  --focus-ring: 0 0 0 3px rgba(31, 70, 54, 0.16);
+  --shadow-xs: 0 1px 2px rgba(18, 22, 20, 0.04);
+  --shadow-sm: 0 1px 2px rgba(18, 22, 20, 0.04), 0 6px 16px -8px rgba(18, 22, 20, 0.1);
+  --shadow-md: 0 12px 32px -16px rgba(18, 22, 20, 0.22), 0 2px 6px rgba(18, 22, 20, 0.04);
+  --shadow-lg: 0 30px 68px -26px rgba(18, 22, 20, 0.36);
+  --focus-ring: 0 0 0 3px rgba(29, 68, 52, 0.14);
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
 
   /* ------------------------------------------------------------------------
      Element Plus 变量覆盖
      ---------------------------------------------------------------------- */
-  --el-color-primary: #1f4636;
-  --el-color-primary-light-3: #627d72;
-  --el-color-primary-light-5: #8ea39a;
-  --el-color-primary-light-7: #bbc8c3;
-  --el-color-primary-light-8: #d1dad7;
-  --el-color-primary-light-9: #e7eceb;
-  --el-color-primary-dark-2: #19382b;
+  --el-color-primary: #1d4434;
+  --el-color-primary-light-3: #5f8172;
+  --el-color-primary-light-5: #8ca79b;
+  --el-color-primary-light-7: #b9c9c1;
+  --el-color-primary-light-8: #cfdad4;
+  --el-color-primary-light-9: #e6ece8;
+  --el-color-primary-dark-2: #17372a;
 
-  --el-color-success: #1f4636;
-  --el-color-success-light-3: #627d72;
-  --el-color-success-light-5: #8ea39a;
-  --el-color-success-light-7: #bbc8c3;
-  --el-color-success-light-8: #d1dad7;
-  --el-color-success-light-9: #e7eceb;
-  --el-color-success-dark-2: #19382b;
+  --el-color-success: #1d4434;
+  --el-color-success-light-3: #5f8172;
+  --el-color-success-light-5: #8ca79b;
+  --el-color-success-light-7: #b9c9c1;
+  --el-color-success-light-8: #cfdad4;
+  --el-color-success-light-9: #e6ece8;
+  --el-color-success-dark-2: #17372a;
 
   --el-color-warning: #6b736e;
   --el-color-warning-light-3: #949b97;
@@ -131,29 +156,29 @@
   --el-color-info-light-9: #f0f2f1;
   --el-color-info-dark-2: #565d59;
 
-  --el-text-color-primary: #171c19;
-  --el-text-color-regular: #3d4541;
+  --el-text-color-primary: #141815;
+  --el-text-color-regular: #3a423d;
   --el-text-color-secondary: #6b736e;
   --el-text-color-placeholder: #a5ada8;
   --el-text-color-disabled: #bfc5c1;
 
-  --el-border-color: #e4e8e5;
-  --el-border-color-light: #eceeed;
-  --el-border-color-lighter: #f0f2f1;
-  --el-border-color-extra-light: #f5f6f6;
-  --el-border-color-dark: #d3d9d5;
-  --el-border-color-darker: #c2c9c5;
+  --el-border-color: #e5e6e2;
+  --el-border-color-light: #edeeea;
+  --el-border-color-lighter: #f1f2ef;
+  --el-border-color-extra-light: #f6f6f4;
+  --el-border-color-dark: #d4d6d1;
+  --el-border-color-darker: #c3c6c1;
 
-  --el-fill-color: #f0f2f1;
-  --el-fill-color-light: #f7f8f7;
-  --el-fill-color-lighter: #fafbfa;
-  --el-fill-color-extra-light: #fcfdfc;
-  --el-fill-color-dark: #e4e8e5;
-  --el-fill-color-darker: #d3d9d5;
+  --el-fill-color: #f0f1ef;
+  --el-fill-color-light: #f7f8f6;
+  --el-fill-color-lighter: #fafaf8;
+  --el-fill-color-extra-light: #fcfcfb;
+  --el-fill-color-dark: #e4e6e3;
+  --el-fill-color-darker: #d4d6d1;
   --el-fill-color-blank: #ffffff;
 
   --el-bg-color: #ffffff;
-  --el-bg-color-page: #f6f7f6;
+  --el-bg-color-page: #f5f5f3;
   --el-bg-color-overlay: #ffffff;
 
   --el-border-radius-base: 8px;
@@ -167,19 +192,19 @@
   --el-font-size-medium: 15px;
   --el-font-size-large: 16px;
 
-  --el-box-shadow: 0 10px 30px -14px rgba(16, 24, 20, 0.24), 0 2px 6px rgba(16, 24, 20, 0.05);
-  --el-box-shadow-light: 0 1px 2px rgba(16, 24, 20, 0.05);
-  --el-box-shadow-lighter: 0 1px 2px rgba(16, 24, 20, 0.04);
-  --el-box-shadow-dark: 0 12px 32px -14px rgba(16, 24, 20, 0.34);
+  --el-box-shadow: 0 12px 32px -16px rgba(18, 22, 20, 0.22), 0 2px 6px rgba(18, 22, 20, 0.04);
+  --el-box-shadow-light: 0 1px 2px rgba(18, 22, 20, 0.04);
+  --el-box-shadow-lighter: 0 1px 2px rgba(18, 22, 20, 0.03);
+  --el-box-shadow-dark: 0 14px 34px -16px rgba(18, 22, 20, 0.32);
 
-  --el-box-shadow-primary: 0 1px 2px rgba(18, 41, 31, 0.22);
+  --el-box-shadow-primary: 0 1px 2px rgba(15, 41, 31, 0.2);
   --el-index-top: 100;
   --el-index-normal: 1000;
   --el-index-popper: 2000;
 }
 
 /* --------------------------------------------------------------------------
-   2. Base
+   3. Base
    -------------------------------------------------------------------------- */
 *,
 *::before,
@@ -197,32 +222,25 @@ body {
   margin: 0;
   background-color: var(--canvas);
   color: var(--text-1);
-  font-family:
-    "Inter",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Avenir Next",
-    "Helvetica Neue",
-    "PingFang SC",
-    "Hiragino Sans GB",
-    "Microsoft YaHei",
-    sans-serif;
+  font-family: var(--font-sans);
   font-size: 13.5px;
   line-height: 1.55;
-  letter-spacing: -0.003em;
+  letter-spacing: -0.004em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-variant-numeric: tabular-nums;
 }
 
+/* 标题用衬线（思源宋体），中文标题立刻有书卷气 */
 h1,
 h2,
 h3,
 h4,
 h5 {
   margin: 0;
-  font-weight: 600;
-  letter-spacing: -0.022em;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: 0.005em;
   color: var(--text-1);
 }
 
@@ -256,19 +274,19 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   3. Layout utilities
+   4. Layout utilities
    -------------------------------------------------------------------------- */
 .page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   min-height: 100%;
 }
 
 .page-head {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 20px;
   flex-wrap: wrap;
 }
@@ -278,15 +296,16 @@ a {
 }
 
 .page-head .ph-title {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
 }
 
 .page-head .ph-desc {
-  margin-top: 5px;
-  font-size: 13px;
+  margin-top: 4px;
+  font-size: 12.5px;
   color: var(--text-3);
 }
 
@@ -295,12 +314,13 @@ a {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .eyebrow {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-3);
 }
@@ -319,7 +339,7 @@ a {
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -335,17 +355,19 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   4. Card
+   5. Card
    -------------------------------------------------------------------------- */
 .el-card {
   --el-card-border-color: var(--border);
   --el-card-border-radius: var(--radius-lg);
-  --el-card-padding: 20px;
+  --el-card-padding: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xs);
-  transition: box-shadow 0.22s var(--ease), border-color 0.22s var(--ease);
+  transition:
+    box-shadow 0.22s var(--ease),
+    border-color 0.22s var(--ease);
 }
 
 .el-card.is-hoverable:hover {
@@ -354,14 +376,14 @@ a {
 }
 
 .el-card__header {
-  padding: 15px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13.5px;
 }
 
 .el-card__body {
-  padding: 20px;
+  padding: 16px;
 }
 
 .el-card__body:has(> .el-table) {
@@ -369,13 +391,13 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   5. Table —— 去竖线、表头轻灰、行高舒展
+   6. Table —— 去竖线、表头轻灰、行高舒展
    -------------------------------------------------------------------------- */
 .el-table {
   --el-table-border-color: var(--border);
   --el-table-header-bg-color: var(--surface-3);
   --el-table-header-text-color: var(--text-3);
-  --el-table-row-hover-bg-color: #fafbfa;
+  --el-table-row-hover-bg-color: #fafaf8;
   --el-table-bg-color: var(--surface);
   --el-table-tr-bg-color: var(--surface);
   font-size: 13px;
@@ -393,17 +415,17 @@ a {
 
 .el-table th.el-table__cell {
   background: var(--surface-3) !important;
-  font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-3);
-  height: 40px;
+  height: 38px;
   padding: 0;
 }
 
 .el-table td.el-table__cell {
-  padding: 11px 0;
+  padding: 9px 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -414,6 +436,7 @@ a {
 .el-table .cell {
   line-height: 1.5;
   padding: 0 12px;
+  word-break: break-word;
 }
 
 .el-table .el-table__empty-block {
@@ -433,11 +456,11 @@ a {
 }
 
 .el-table .el-table__row:hover > td.el-table__cell {
-  background: #fafbfa !important;
+  background: #fafaf8 !important;
 }
 
 /* --------------------------------------------------------------------------
-   6. Button
+   7. Button
    -------------------------------------------------------------------------- */
 .el-button {
   --el-button-border-radius: var(--radius-sm);
@@ -464,11 +487,11 @@ a {
   --el-button-active-border-color: var(--forest-700);
   --el-button-disabled-bg-color: var(--forest-300);
   --el-button-disabled-border-color: var(--forest-300);
-  box-shadow: 0 1px 2px rgba(18, 41, 31, 0.18);
+  box-shadow: 0 1px 2px rgba(15, 41, 31, 0.18);
 }
 
 .el-button--primary:hover {
-  box-shadow: 0 4px 14px -6px rgba(18, 41, 31, 0.5);
+  box-shadow: 0 4px 14px -6px rgba(15, 41, 31, 0.45);
 }
 
 .el-button--default {
@@ -534,19 +557,19 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   7. Form controls
+   8. Form controls
    -------------------------------------------------------------------------- */
 .el-form-item__label {
   color: var(--text-2);
   font-size: 12.5px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  padding-bottom: 6px;
+  padding-bottom: 5px;
   line-height: 1.4;
 }
 
 .el-form-item {
-  margin-bottom: 18px;
+  margin-bottom: 15px;
 }
 
 .el-input__wrapper,
@@ -639,7 +662,7 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   8. Dialog / Drawer / Popover / Dropdown
+   9. Dialog / Drawer / Popover / Dropdown
    -------------------------------------------------------------------------- */
 .el-dialog {
   border-radius: var(--radius-lg);
@@ -649,30 +672,31 @@ a {
 }
 
 .el-dialog__header {
-  padding: 20px 24px 16px;
+  padding: 16px 22px 14px;
   margin: 0;
   border-bottom: 1px solid var(--border);
 }
 
 .el-dialog__title {
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-family: var(--font-serif);
+  font-size: 16.5px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
   color: var(--text-1);
 }
 
 .el-dialog__headerbtn {
-  top: 16px;
-  right: 16px;
+  top: 14px;
+  right: 14px;
 }
 
 .el-dialog__body {
-  padding: 22px 24px;
+  padding: 18px 22px;
   color: var(--text-1);
 }
 
 .el-dialog__footer {
-  padding: 14px 24px 20px;
+  padding: 12px 22px 16px;
   border-top: 1px solid var(--border);
   background: var(--surface-2);
 }
@@ -682,20 +706,21 @@ a {
 }
 
 .el-drawer {
-  --el-drawer-padding-primary: 20px;
+  --el-drawer-padding-primary: 18px;
 }
 
 .el-drawer__header {
   margin: 0;
-  padding: 18px 22px;
+  padding: 15px 18px;
   border-bottom: 1px solid var(--border);
   color: var(--text-1);
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: 15.5px;
+  font-weight: 400;
 }
 
 .el-drawer__body {
-  padding: 20px 22px;
+  padding: 16px 18px;
 }
 
 .el-popper.is-light {
@@ -727,15 +752,15 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   9. Tag / Badge / Avatar / Alert / Empty
+   10. Tag / Badge / Avatar / Alert / Empty
    -------------------------------------------------------------------------- */
 .el-tag {
   --el-tag-border-radius: var(--radius-pill);
   font-weight: 500;
   font-size: 11.5px;
-  height: 22px;
+  height: 21px;
   padding: 0 9px;
-  line-height: 20px;
+  line-height: 19px;
   letter-spacing: 0.01em;
   border-width: 1px;
 }
@@ -748,13 +773,13 @@ a {
 
 .el-tag--success {
   --el-tag-bg-color: var(--forest-100);
-  --el-tag-border-color: #cfe0d7;
+  --el-tag-border-color: #cbdcd2;
   --el-tag-text-color: var(--forest-700);
 }
 
 .el-tag--warning {
-  --el-tag-bg-color: #eef0ee;
-  --el-tag-border-color: #dfe3e0;
+  --el-tag-bg-color: #eeefec;
+  --el-tag-border-color: #dfe1dd;
   --el-tag-text-color: #4e5450;
 }
 
@@ -766,7 +791,7 @@ a {
 
 .el-tag--primary {
   --el-tag-bg-color: var(--forest-100);
-  --el-tag-border-color: #cfe0d7;
+  --el-tag-border-color: #cbdcd2;
   --el-tag-text-color: var(--forest-700);
 }
 
@@ -805,7 +830,7 @@ a {
 }
 
 .el-empty {
-  padding: 32px 0;
+  padding: 28px 0;
 }
 
 .el-empty__description p {
@@ -814,12 +839,13 @@ a {
 }
 
 .el-result {
-  padding: 32px 16px;
+  padding: 28px 16px;
 }
 
 .el-result__title p {
-  font-size: 17px;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 400;
 }
 
 .el-result__subtitle p {
@@ -828,7 +854,7 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   10. Tree / Tabs / Steps / Timeline / Descriptions
+   11. Tree / Tabs / Steps / Timeline / Descriptions
    -------------------------------------------------------------------------- */
 .el-tree {
   --el-tree-node-hover-bg-color: var(--surface-3);
@@ -837,7 +863,7 @@ a {
 }
 
 .el-tree-node__content {
-  height: 32px;
+  height: 30px;
   border-radius: var(--radius-xs);
   font-size: 13px;
 }
@@ -861,8 +887,8 @@ a {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-3);
-  height: 44px;
-  line-height: 44px;
+  height: 40px;
+  line-height: 40px;
 }
 
 .el-tabs__item.is-active {
@@ -872,10 +898,6 @@ a {
 .el-tabs__active-bar {
   background: var(--forest-600);
   height: 2px;
-}
-
-.el-tabs__nav-wrap.is-scrollable .el-tabs__nav-scroll {
-  contain: none;
 }
 
 .el-steps .el-step__title {
@@ -925,14 +947,14 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   11. Pagination / Progress / CheckTag / Message
+   12. Pagination / Progress / CheckTag / Message
    -------------------------------------------------------------------------- */
 .el-pagination {
   --el-pagination-bg-color: transparent;
   --el-pagination-button-bg-color: var(--surface);
   --el-pagination-hover-color: var(--forest-600);
   font-size: 13px;
-  padding: 14px 4px 2px;
+  padding: 12px 4px 2px;
 }
 
 .el-pagination button,
@@ -993,8 +1015,9 @@ a {
 }
 
 .el-message-box__title {
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: 15.5px;
+  font-weight: 400;
 }
 
 .el-message-box__content {
@@ -1008,7 +1031,7 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   12. Menu（侧边栏用）
+   13. Menu（侧边栏用）
    -------------------------------------------------------------------------- */
 .el-menu {
   background: transparent;
@@ -1017,11 +1040,11 @@ a {
 }
 
 .el-menu-item {
-  height: 40px;
-  line-height: 40px;
+  height: 38px;
+  line-height: 38px;
   margin: 2px 10px;
   border-radius: var(--radius-sm);
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 13.5px;
   transition:
     background-color 0.18s var(--ease),
@@ -1029,7 +1052,7 @@ a {
 }
 
 .el-menu-item .el-icon {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.42);
 }
 
 .el-menu-item:hover {
