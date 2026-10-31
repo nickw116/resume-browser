@@ -23,11 +23,12 @@ npx tsc --noEmit # 类型检查
 src/
 ├── api.ts         # fetch 封装：自动带 Bearer token，401 跳登录，withBase() 处理 BASE_URL
 ├── auth.ts        # token 存取
-├── router.ts      # 路由守卫：未登录跳 /login
+├── router.ts      # 路由守卫：未登录跳 /login；路由：/login、/（BrowserPage）、/schedule
 ├── types.ts       # Role（admin/fahr/manager/hr）、组织树等类型
 ├── status.ts      # 状态枚举/标签
-├── pages/         # LoginPage、BrowserPage（简历浏览主页）
-└── components/    # ResumeDialog（简历详情弹窗）
+├── pages/         # LoginPage（登录）、BrowserPage（简历浏览主页，/）、SchedulePage（面试日程月历，/schedule）
+└── components/    # ResumeDialog（简历详情弹窗）、RequirementFormDialog（需求表单弹窗）、
+                   # RequirementListDrawer（需求列表抽屉）、NotificationBell（通知铃铛）、PageHeader（页头）
 ```
 
 ## 约定

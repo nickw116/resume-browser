@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
+import { Filter } from "@element-plus/icons-vue";
 import { api, withBase } from "../api";
 import { getUser } from "../auth";
 import { STATUS_LABEL, STATUS_TAG } from "../status";
@@ -167,34 +168,39 @@ onMounted(() => {
 
 <template>
   <div class="page">
-    <PageHeader>
-      <el-button v-if="canSubmitRequirement" type="primary" plain size="small" @click="reqFormVisible = true">
-        提交需求
-      </el-button>
-      <el-button size="small" @click="reqListVisible = true">需求进度</el-button>
-    </PageHeader>
+    <PageHeader />
+
+    <div class="page-head">
+      <div class="ph-main">
+        <div class="eyebrow">Resume Browser</div>
+        <h1 class="ph-title">简历浏览</h1>
+        <p class="ph-desc">按品牌 / 城市 / 店铺筛选，查看已发布的候选人简历与当前流程状态</p>
+      </div>
+      <div class="ph-actions">
+        <el-button size="small" @click="reqListVisible = true">需求进度</el-button>
+        <el-button
+          v-if="canSubmitRequirement"
+          type="primary"
+          size="small"
+          @click="reqFormVisible = true"
+        >
+          提交需求
+        </el-button>
+      </div>
+    </div>
 
     <div class="browser">
       <el-button v-if="isMobile" class="filter-btn" @click="drawerVisible = true">
         <span class="filter-label">{{ selected ? selected.label : "全部店铺" }}</span>
-        <span class="filter-arrow">筛选 ▾</span>
+        <span class="filter-arrow">
+          <el-icon><Filter /></el-icon>
+          筛选
+        </span>
       </el-button>
       <el-card v-else class="tree-card" shadow="never">
-        <div class="tree-tabs">
-          <el-radio-group v-model="activeTab" size="small" @change="onTabChange">
-            <el-radio-button v-for="t in TABS" :key="t.key" :value="t.key">{{ t.label }}</el-radio-button>
-          </el-radio-group>
-          <div v-if="activeTab === 'DONE'" class="sub-tags">
-            <el-check-tag :checked="subTab === ''" @change="subTab = ''; onSubTabChange()">全部</el-check-tag>
-            <el-check-tag
-              v-for="t in SUB_TABS"
-              :key="t.status"
-              :checked="subTab === t.status"
-              @change="subTab = t.status; onSubTabChange()"
-            >
-              {{ t.label }}
-            </el-check-tag>
-          </div>
+        <div class="tree-head">
+          <div class="eyebrow">组织架构</div>
+          <span class="tree-hint">品牌 / 城市 / 店铺</span>
         </div>
         <el-tree
           :data="treeData"
@@ -216,70 +222,99 @@ onMounted(() => {
       </el-card>
 
       <el-card class="list-card" shadow="never">
-        <div class="list-head">
-          <div v-if="isMobile" class="tab-rows">
+        <template #header>
+          <div class="toolbar list-toolbar">
             <el-radio-group v-model="activeTab" size="small" @change="onTabChange">
               <el-radio-button v-for="t in TABS" :key="t.key" :value="t.key">{{ t.label }}</el-radio-button>
             </el-radio-group>
-            <div v-if="activeTab === 'DONE'" class="sub-tags">
-              <el-check-tag :checked="subTab === ''" @change="subTab = ''; onSubTabChange()">全部</el-check-tag>
-              <el-check-tag
-                v-for="t in SUB_TABS"
-                :key="t.status"
-                :checked="subTab === t.status"
-                @change="subTab = t.status; onSubTabChange()"
-              >
-                {{ t.label }}
-              </el-check-tag>
-            </div>
-          </div>
-          <div class="scope-info">
+            <span class="spacer" />
             <span class="scope-label">
-              {{ selected ? selected.label : "全部店铺" }} · 共 {{ total }} 人
+              {{ selected ? selected.label : "全部店铺" }} · 共
+              <span class="scope-count">{{ total }}</span> 人
             </span>
             <el-button v-if="selected" link type="primary" size="small" @click="clearSelection">
-              查看全部
+              清除筛选
             </el-button>
           </div>
-        </div>
+          <div v-if="activeTab === 'DONE'" class="sub-tags">
+            <el-check-tag :checked="subTab === ''" @change="subTab = ''; onSubTabChange()">全部</el-check-tag>
+            <el-check-tag
+              v-for="t in SUB_TABS"
+              :key="t.status"
+              :checked="subTab === t.status"
+              @change="subTab = t.status; onSubTabChange()"
+            >
+              {{ t.label }}
+            </el-check-tag>
+          </div>
+        </template>
 
-        <div v-loading="loading" class="list-body">
-          <el-empty v-if="!candidates.length && !loading" description="暂无人员" :image-size="80" />
-          <div class="grid">
-            <div v-for="c in candidates" :key="c.id" class="person">
-              <el-avatar
-                :size="44"
-                :src="c.photo ? withBase(c.photo) : undefined"
-                :class="{ 'avatar-clickable': c.photo }"
-                @click.stop="c.photo && (photoPreviewUrl = withBase(c.photo))"
-              >
-                {{ c.name.slice(0, 1) }}
-              </el-avatar>
-              <div class="person-info">
-                <p class="person-name">{{ c.name }}</p>
-                <p class="person-meta">
-                  {{ c.gender === "MALE" ? "男" : "女" }}
-                  <template v-if="c.age !== null"> · {{ c.age }} 岁</template>
-                </p>
-                <el-tag :type="STATUS_TAG[c.status] ?? 'info'" size="small">
-                  {{ STATUS_LABEL[c.status] ?? c.status }}
-                </el-tag>
+        <el-table v-loading="loading" class="data-table" :data="candidates" style="width: 100%">
+          <el-table-column label="姓名" min-width="180">
+            <template #default="{ row }">
+              <div class="cell-person">
+                <el-avatar
+                  :size="30"
+                  :src="row.photo ? withBase(row.photo) : undefined"
+                  :class="{ 'avatar-clickable': row.photo }"
+                  @click.stop="row.photo && (photoPreviewUrl = withBase(row.photo))"
+                >
+                  {{ row.name.slice(0, 1) }}
+                </el-avatar>
+                <div class="cell-person-info">
+                  <span class="cell-name">{{ row.name }}</span>
+                  <span class="cell-sub">
+                    {{ row.gender === "MALE" ? "男" : "女" }}
+                    <template v-if="row.age !== null"> · {{ row.age }} 岁</template>
+                  </span>
+                </div>
               </div>
-              <el-button type="primary" plain size="small" class="detail-btn" @click="openDetail(c)">
-                详情
-              </el-button>
-            </div>
-          </div>
-          <div v-if="total > pageSize" class="pager">
-            <el-pagination
-              v-model:current-page="page"
-              background
-              layout="total, prev, pager, next"
-              :total="total"
-              :page-size="pageSize"
-              @current-change="load"
-            />
-          </div>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="门店" min-width="170">
+            <template #default="{ row }">
+              <div class="cell-store">
+                <span class="cell-store-name">{{ row.store.name }}</span>
+                <span class="cell-sub">{{ row.store.city.brand.name }} · {{ row.store.city.name }}</span>
+              </div>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="状态" width="120">
+            <template #default="{ row }">
+              <el-tag :type="STATUS_TAG[row.status] ?? 'info'" size="small">
+                {{ STATUS_LABEL[row.status] ?? row.status }}
+              </el-tag>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="更新" width="110">
+            <template #default="{ row }">
+              <span class="cell-time">{{ row.updatedAt ? row.updatedAt.slice(0, 10) : "—" }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="操作" width="90" align="right">
+            <template #default="{ row }">
+              <el-button link type="primary" size="small" @click="openDetail(row)">详情</el-button>
+            </template>
+          </el-table-column>
+
+          <template #empty>
+            <el-empty description="暂无人员" :image-size="80" />
+          </template>
+        </el-table>
+
+        <div v-if="total > pageSize" class="pager">
+          <el-pagination
+            v-model:current-page="page"
+            background
+            layout="total, prev, pager, next"
+            :total="total"
+            :page-size="pageSize"
+            @current-change="load"
+          />
         </div>
       </el-card>
     </div>
@@ -321,228 +356,245 @@ onMounted(() => {
 
 <style scoped>
 .page {
-  min-height: 100vh;
+  padding: 22px 28px 36px;
 }
 
 .browser {
   display: flex;
-  gap: 16px;
-  align-items: stretch;
-  padding: 16px;
+  gap: 18px;
+  align-items: flex-start;
 }
 
-.tree-card,
-.list-card {
-  max-height: calc(100vh - 92px);
-  overflow: auto;
-}
-
+/* ---------- 左侧组织树 ---------- */
 .tree-card {
-  width: 300px;
+  width: 280px;
   flex-shrink: 0;
+  position: sticky;
+  top: 18px;
 }
 
-.tree-tabs {
+.tree-card :deep(.el-card__body) {
+  padding: 16px 12px 16px 10px;
+  max-height: calc(100vh - 210px);
+  overflow-y: auto;
+}
+
+.tree-head {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
+  padding: 0 8px 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
-.tree-tabs :deep(.el-radio-button__inner) {
-  padding: 5px 11px;
-  font-size: 12px;
-}
-
-.tree-subtabs :deep(.el-radio-button__inner) {
-  padding: 5px 8px;
-  font-size: 11px;
-}
-
-.sub-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.sub-tags :deep(.el-check-tag) {
-  font-size: 12px;
-  padding: 4px 10px;
-  font-weight: 400;
-  color: #1f2937;
-  background: #f3f4f6;
-}
-
-.sub-tags :deep(.el-check-tag.is-checked) {
-  color: #ffffff;
-  background: #1f2937;
-}
-
-.tree-card :deep(.el-tree-node__content) {
-  height: 38px;
-  border-radius: 6px;
-}
-
-.tree-card :deep(.el-tree-node__content:hover) {
-  background-color: #f0f7ff;
+.tree-hint {
+  font-size: 11.5px;
+  color: var(--text-3);
 }
 
 .tree-node {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: 1;
+  min-width: 0;
   font-size: 13px;
 }
 
 .lv-brand {
-  font-size: 13px;
   font-weight: 600;
+  color: var(--text-1);
 }
 
 .lv-city {
-  font-size: 13px;
+  color: var(--text-1);
 }
 
 .lv-store {
-  font-size: 12px;
-  color: #303133;
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 .tree-count {
-  background: #ecf5ff;
-  color: #409eff;
-  border-radius: 10px;
-  padding: 0 8px;
+  margin-left: auto;
+  background: var(--ink-050);
+  color: var(--text-2);
+  border-radius: var(--radius-pill);
+  padding: 0 7px;
+  font-size: 11px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 右侧列表 ---------- */
+.list-card {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-card :deep(.el-card__header) {
+  padding: 14px 20px 12px;
+}
+
+.list-toolbar {
+  gap: 12px;
+}
+
+.list-toolbar :deep(.el-radio-button__inner) {
+  padding: 6px 13px;
+  font-size: 12.5px;
+}
+
+.sub-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.sub-tags :deep(.el-check-tag) {
   font-size: 12px;
-  line-height: 20px;
+  font-weight: 500;
+  padding: 4px 11px;
+}
+
+.scope-label {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.scope-count {
+  color: var(--forest-700);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 表格单元 ---------- */
+.cell-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cell-person-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cell-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-1);
+  line-height: 1.4;
+}
+
+.cell-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+
+.cell-store {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cell-store-name {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+
+.cell-time {
+  font-size: 12px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .avatar-clickable {
   cursor: zoom-in;
 }
 
-.list-card {
-  flex: 1;
-  min-width: 0;
-  min-height: 400px;
-}
-
-.list-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.tab-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.scope-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.scope-label {
-  font-size: 13px;
-  color: #606266;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
-}
-
-.person {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
-  padding: 12px 14px;
-}
-
-.person-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.person-name {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.person-meta {
-  margin: 2px 0 6px;
-  color: #909399;
-  font-size: 12px;
-}
-
-.detail-btn {
-  flex-shrink: 0;
-}
-
 .pager {
   display: flex;
   justify-content: flex-end;
-  margin-top: 12px;
+  padding: 0 20px 18px;
 }
 
-@media (max-width: 768px) {
-  .browser {
-    flex-direction: column;
-    padding: 10px;
-    gap: 10px;
-  }
-
-  .filter-btn {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    margin-left: 0;
-  }
-
-  .filter-label {
-    font-weight: 600;
-  }
-
-  .filter-arrow {
-    color: #909399;
-    font-size: 12px;
-  }
-
-  .list-card {
-    max-height: none;
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
-  .list-head {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+/* ---------- 移动端筛选入口 ---------- */
+.filter-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-color: var(--border-strong);
 }
 
+.filter-label {
+  font-weight: 500;
+  color: var(--text-1);
+}
+
+.filter-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+
+/* ---------- 抽屉内组织树 ---------- */
 .drawer-all {
   padding: 8px 10px;
   font-size: 13px;
-  font-weight: 600;
-  border-radius: 6px;
+  font-weight: 500;
+  border-radius: var(--radius-xs);
   cursor: pointer;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  color: var(--text-2);
 }
 
 .drawer-all.sel {
-  background: #1f2937;
-  color: #ffffff;
+  background: var(--forest-600);
+  color: var(--text-invert);
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 16px 16px 28px;
+  }
+
+  .browser {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .tree-card {
+    width: 100%;
+    position: static;
+  }
+
+  .tree-card :deep(.el-card__body) {
+    max-height: none;
+  }
+
+  .list-card :deep(.el-card__header) {
+    padding: 12px 14px 10px;
+  }
+
+  .pager {
+    padding: 0 14px 14px;
+  }
 }
 </style>

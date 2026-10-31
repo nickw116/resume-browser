@@ -182,11 +182,12 @@ async function act(action: Action) {
 </script>
 
 <template>
-  <el-dialog v-model="visible" :title="`电子简历 · ${candidate?.name ?? ''}`" width="min(720px, 94vw)">
+  <el-dialog v-model="visible" title="电子简历" width="min(760px, 94vw)">
     <div v-if="candidate" class="body">
+      <!-- 候选人抬头 -->
       <div class="p-head">
         <el-avatar
-          :size="72"
+          :size="64"
           :src="candidate.photo ? withBase(candidate.photo) : undefined"
           :class="{ 'avatar-clickable': candidate.photo }"
           @click="candidate.photo && (photoPreview = true)"
@@ -194,13 +195,14 @@ async function act(action: Action) {
           {{ candidate.name.slice(0, 1) }}
         </el-avatar>
         <div class="p-head-info">
+          <div class="eyebrow p-eyebrow">Candidate Profile</div>
           <p class="p-name">{{ candidate.name }}</p>
           <p class="p-meta">
             {{ candidate.gender === "MALE" ? "男" : "女" }}
             <template v-if="candidate.age !== null"> · {{ candidate.age }} 岁</template>
             <template v-if="candidate.phone"> · {{ candidate.phone }}</template>
           </p>
-          <p class="p-meta p-store">
+          <p class="p-store">
             应聘门店：{{ candidate.store.city.brand.name }} / {{ candidate.store.city.name }} /
             {{ candidate.store.name }}
           </p>
@@ -217,22 +219,27 @@ async function act(action: Action) {
         <el-step title="入职确认" />
       </el-steps>
 
+      <!-- 工作经历 -->
       <div v-if="candidate.workExperiences.length" class="p-section">
         <p class="p-title">工作经历</p>
-        <div v-for="w in candidate.workExperiences" :key="w.id" class="p-work">
-          <div class="p-work-head">
-            <span class="p-company">{{ w.company }}</span>
-            <span class="p-period">{{ w.startDate || "—" }} ~ {{ w.endDate || "至今" }}</span>
+        <div class="p-timeline">
+          <div v-for="w in candidate.workExperiences" :key="w.id" class="p-work">
+            <div class="p-work-head">
+              <span class="p-company">{{ w.company }}</span>
+              <span class="p-period">{{ w.startDate || "—" }} ~ {{ w.endDate || "至今" }}</span>
+            </div>
+            <p v-if="w.description" class="p-desc">{{ w.description }}</p>
           </div>
-          <p v-if="w.description" class="p-desc">{{ w.description }}</p>
         </div>
       </div>
 
+      <!-- 备注 -->
       <div v-if="candidate.remark" class="p-section">
         <p class="p-title">备注</p>
         <p class="p-desc">{{ candidate.remark }}</p>
       </div>
 
+      <!-- 约面确认 -->
       <div class="p-section">
         <p class="p-title">约面确认</p>
         <template v-if="status === 'PENDING' || status === 'DECLINED'">
@@ -277,22 +284,31 @@ async function act(action: Action) {
               </div>
             </template>
             <template v-else>
-              <div v-for="s in candidate.interviewSlots" :key="s.id" class="p-slot">{{ fmtSlot(s) }}</div>
+              <div class="p-timeline">
+                <div v-for="s in candidate.interviewSlots" :key="s.id" class="p-slot">
+                  <span class="p-slot-time">{{ fmtSlot(s) }}</span>
+                </div>
+              </div>
             </template>
           </template>
           <p v-else class="p-hint">该人员还没有可面试时间，请先在 FaHrService 人员管理中添加。</p>
         </template>
         <template v-else-if="status === 'ACCEPTED'">
-          <p class="p-hint">
-            已约面：{{ acceptedSlot ? fmtSlot(acceptedSlot) : "—" }}
-            <template v-if="candidate.interviewMethod"> · {{ INTERVIEW_METHOD_LABEL[candidate.interviewMethod] ?? candidate.interviewMethod }}</template>
-            <template v-if="candidate.interviewLocation"> · {{ candidate.interviewLocation }}</template>
-            <template v-if="candidate.interviewer"> · 面试官 {{ candidate.interviewer }}</template>
-          </p>
+          <div class="p-timeline">
+            <div class="p-slot">
+              <span class="p-slot-time">{{ acceptedSlot ? fmtSlot(acceptedSlot) : "—" }}</span>
+              <span class="p-slot-meta">
+                <template v-if="candidate.interviewMethod">{{ INTERVIEW_METHOD_LABEL[candidate.interviewMethod] ?? candidate.interviewMethod }}</template>
+                <template v-if="candidate.interviewLocation"> · {{ candidate.interviewLocation }}</template>
+                <template v-if="candidate.interviewer"> · 面试官 {{ candidate.interviewer }}</template>
+              </span>
+            </div>
+          </div>
         </template>
         <p v-else class="p-hint">{{ STATUS_LABEL[status] ?? status }}</p>
       </div>
 
+      <!-- 面试评价 -->
       <div v-if="status === 'ACCEPTED' && canInterview" class="p-section">
         <p class="p-title">面试评价</p>
         <div class="eval-form">
@@ -312,6 +328,7 @@ async function act(action: Action) {
         </p>
       </div>
 
+      <!-- 入职确认 -->
       <div v-if="status === 'PASSED' && canOnboard" class="p-section">
         <p class="p-title">入职确认</p>
         <div class="onboard-form">
@@ -337,6 +354,7 @@ async function act(action: Action) {
         </div>
       </div>
 
+      <!-- 底部操作区 -->
       <div v-if="canReset" class="ops">
         <el-button link type="warning" size="small" :loading="acting" @click="act('reset')">
           重置招聘流程
@@ -354,10 +372,13 @@ async function act(action: Action) {
 </template>
 
 <style scoped>
+/* ---------- 候选人抬头 ---------- */
 .p-head {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
 }
 
 .p-head-info {
@@ -365,29 +386,47 @@ async function act(action: Action) {
   min-width: 0;
 }
 
+.p-head :deep(.el-tag) {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.p-eyebrow {
+  margin-bottom: 7px;
+}
+
 .p-name {
   margin: 0;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--text-1);
 }
 
 .p-meta {
-  margin: 4px 0 0;
-  color: #606266;
-  font-size: 14px;
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--text-2);
 }
 
 .p-store {
-  color: #909399;
-  font-size: 13px;
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: var(--text-3);
 }
 
 .avatar-clickable {
   cursor: zoom-in;
 }
 
+/* ---------- 流程步骤 ---------- */
 .p-steps {
-  margin: 14px 0 0;
+  margin: 20px 0 0;
+  padding: 16px 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 .p-steps :deep(.el-step__icon) {
@@ -405,83 +444,147 @@ async function act(action: Action) {
   top: 10px;
 }
 
+/* ---------- 分区 ---------- */
 .p-section {
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
 .p-title {
-  margin: 0 0 10px;
-  font-size: 15px;
+  margin: 0 0 14px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
   font-weight: 600;
-  border-left: 3px solid #409eff;
-  padding-left: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
 }
 
-.p-work {
-  padding: 8px 0;
-  border-bottom: 1px dashed #e4e7ed;
+.p-desc {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--text-1);
+  white-space: pre-wrap;
 }
 
-.p-work:last-child {
-  border-bottom: none;
+.p-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--text-2);
+}
+
+/* ---------- 时间轴 ---------- */
+.p-timeline {
+  position: relative;
+  padding-left: 18px;
+}
+
+.p-timeline::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--border);
+}
+
+.p-work,
+.p-slot {
+  position: relative;
+  padding-bottom: 16px;
+}
+
+.p-work:last-child,
+.p-slot:last-child {
+  padding-bottom: 0;
+}
+
+.p-work::before,
+.p-slot::before {
+  content: "";
+  position: absolute;
+  left: -17px;
+  top: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--forest-600);
+  box-shadow: 0 0 0 3px var(--surface);
 }
 
 .p-work-head {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
 }
 
 .p-company {
-  font-weight: 600;
   font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
 }
 
 .p-period {
-  color: #909399;
-  font-size: 13px;
+  font-size: 12.5px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
 }
 
-.p-desc {
-  margin: 4px 0 0;
-  color: #606266;
-  font-size: 14px;
-  white-space: pre-wrap;
+.p-slot-time {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
 }
 
-.p-hint {
-  margin: 0;
-  font-size: 14px;
-  color: #606266;
+.p-slot-meta {
+  display: block;
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
+/* ---------- 可面试时间 ---------- */
 .slot-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .slot-radio {
-  margin-right: 0;
+  width: 100%;
   height: auto;
-  font-size: 14px;
+  margin-right: 0;
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  transition: background-color 0.18s var(--ease);
 }
 
-.p-slot {
-  font-size: 14px;
-  color: #606266;
-  line-height: 1.8;
+.slot-radio:hover {
+  background: var(--surface-3);
 }
 
-.actions {
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.slot-radio :deep(.el-radio__label) {
+  margin-left: 10px;
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
 }
 
+.slot-radio :deep(.el-radio__input.is-checked + .el-radio__label) {
+  color: var(--text-1);
+  font-weight: 500;
+}
+
+/* ---------- 表单与操作 ---------- */
 .interview-form {
   margin-top: 10px;
   display: flex;
@@ -512,10 +615,21 @@ async function act(action: Action) {
   margin-bottom: 4px;
 }
 
-.ops {
-  margin-top: 12px;
+.actions {
+  margin-top: 14px;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ---------- 底部操作区 ---------- */
+.ops {
+  margin: 26px -24px -22px;
+  padding: 13px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
 }
 </style>

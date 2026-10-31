@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
+import { ArrowLeft, ArrowRight } from "@element-plus/icons-vue";
 import { api, withBase } from "../api";
-import { STATUS_LABEL, INTERVIEW_METHOD_LABEL } from "../status";
+import { STATUS_LABEL, STATUS_TAG, INTERVIEW_METHOD_LABEL } from "../status";
 import type { CandidateRow, InterviewSlot } from "../types";
 import PageHeader from "../components/PageHeader.vue";
 import ResumeDialog from "../components/ResumeDialog.vue";
@@ -151,19 +152,35 @@ onMounted(load);
   <div class="page">
     <PageHeader />
 
+    <div class="page-head">
+      <div class="ph-main">
+        <div class="eyebrow">Interview Schedule</div>
+        <h1 class="ph-title">面试日程</h1>
+        <p class="ph-desc">按月查看已约定的面试安排，点击日期可展开当天面试明细</p>
+      </div>
+      <div class="ph-actions">
+        <el-button size="small" @click="prevMonth">
+          <el-icon><ArrowLeft /></el-icon>
+          上个月
+        </el-button>
+        <el-button size="small" @click="goToday">今天</el-button>
+        <el-button size="small" @click="nextMonth">
+          下个月
+          <el-icon><ArrowRight /></el-icon>
+        </el-button>
+      </div>
+    </div>
+
     <div class="sched" v-loading="loading">
       <div class="cal-wrap">
-        <div class="cal-header">
-          <h1 class="cal-title">Schedule</h1>
-          <div class="cal-controls">
-            <el-button size="small" plain @click="prevMonth">上个月</el-button>
-            <span class="month-label">{{ monthLabel }}</span>
-            <el-button size="small" plain @click="nextMonth">下个月</el-button>
-            <el-button size="small" plain @click="goToday">今天</el-button>
-          </div>
-        </div>
-
         <div class="cal-card">
+          <div class="cal-header">
+            <h2 class="cal-title">{{ monthLabel }}</h2>
+            <span class="cal-count">
+              共 <span class="count-num">{{ interviews.length }}</span> 场面试
+            </span>
+          </div>
+
           <div class="week-row">
             <span v-for="w in ['一', '二', '三', '四', '五', '六', '日']" :key="w" class="week-cell">{{ w }}</span>
           </div>
@@ -197,15 +214,17 @@ onMounted(load);
       <div class="side">
         <div class="side-card">
           <div class="side-head">
-            <span class="side-date">{{ selectedLabel }}</span>
-            <span class="side-count">{{ selectedItems.length }} 场面试</span>
+            <span class="side-date">{{ selectedDay.slice(0, 4) }} · {{ selectedLabel }}</span>
+            <span class="side-count">
+              <span class="count-num">{{ selectedItems.length }}</span> 场面试
+            </span>
           </div>
           <el-empty v-if="!selectedItems.length && !loading" description="当天暂无面试" :image-size="70" />
           <div v-for="it in selectedItems" :key="it.candidate.id" class="iv-row">
             <span class="iv-time">{{ fmtHM(new Date(it.slot.startAt)) }}</span>
             <div class="iv-card" @click="openDetail(it)">
               <el-avatar
-                :size="52"
+                :size="40"
                 :src="it.candidate.photo ? withBase(it.candidate.photo) : undefined"
                 class="iv-avatar"
               >
@@ -219,7 +238,9 @@ onMounted(load);
                     · {{ INTERVIEW_METHOD_LABEL[it.candidate.interviewMethod] ?? it.candidate.interviewMethod }}
                   </template>
                 </p>
-                <span class="iv-tag" :class="chipClass(it)">{{ STATUS_LABEL[it.candidate.status] ?? it.candidate.status }}</span>
+                <el-tag :type="STATUS_TAG[it.candidate.status] ?? 'info'" size="small">
+                  {{ STATUS_LABEL[it.candidate.status] ?? it.candidate.status }}
+                </el-tag>
               </div>
             </div>
           </div>
@@ -233,116 +254,132 @@ onMounted(load);
 
 <style scoped>
 .page {
-  min-height: 100vh;
-  background: #f5f4f1;
+  padding: 22px 28px 36px;
 }
 
 .sched {
   display: flex;
-  gap: 16px;
-  padding: 16px 20px;
+  gap: 18px;
   align-items: flex-start;
 }
 
 .cal-wrap {
-  flex: 1.5;
+  flex: 1.6;
   min-width: 0;
+}
+
+/* ---------- 日历卡片 ---------- */
+.cal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
 }
 
 .cal-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 14px;
+  gap: 12px;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border);
 }
 
 .cal-title {
-  font-size: 26px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-}
-
-.cal-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.month-label {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
-  color: #111827;
-  min-width: 92px;
-  text-align: center;
+  letter-spacing: -0.015em;
+  color: var(--text-1);
 }
 
-.cal-card {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 14px;
+.cal-count,
+.side-count {
+  font-size: 12.5px;
+  color: var(--text-3);
 }
 
+.count-num {
+  color: var(--forest-700);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 星期表头 ---------- */
 .week-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 6px;
+  background: var(--surface-3);
+  border-bottom: 1px solid var(--border);
 }
 
 .week-cell {
   text-align: center;
-  font-size: 12px;
-  color: #6b7280;
-  padding: 6px 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+  padding: 9px 0;
 }
 
+/* ---------- 日期网格 ---------- */
 .grid-cal {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  border-left: 1px solid var(--border);
 }
 
 .day-cell {
-  background: #f7f6f3;
-  border: 2px solid transparent;
-  border-radius: 10px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
   min-height: 96px;
-  padding: 6px;
+  padding: 8px 7px;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: background-color 0.18s var(--ease);
 }
 
 .day-cell:hover {
-  border-color: #d1d5db;
+  background: var(--surface-2);
 }
 
 .day-cell.selected {
-  border-color: #111827;
-}
-
-.day-cell.dim .day-num {
-  color: #c4c9d1;
-}
-
-.day-cell.today .day-num {
-  color: #ffffff;
-  background: #111827;
-  border-radius: 50%;
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  background: var(--forest-050);
+  box-shadow: inset 0 0 0 1px var(--forest-600);
 }
 
 .day-num {
-  font-size: 13px;
-  font-weight: 600;
-  color: #111827;
+  display: block;
+  width: 22px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-1);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
+.day-cell.dim .day-num {
+  color: var(--ink-200);
+}
+
+.day-cell.today .day-num {
+  font-weight: 600;
+  color: var(--forest-700);
+}
+
+.day-cell.today .day-num::after {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 4px;
+  margin: 3px auto 0;
+  border-radius: 50%;
+  background: var(--forest-600);
+}
+
+/* ---------- 面试条目 ---------- */
 .chips {
-  margin-top: 6px;
+  margin-top: 7px;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -351,41 +388,48 @@ onMounted(load);
 .chip {
   font-size: 11px;
   line-height: 1.5;
-  border-radius: 5px;
-  padding: 1px 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--forest-600);
+  border-radius: var(--radius-xs);
+  padding: 2px 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #ffffff;
+  color: var(--text-1);
 }
 
-.chip-dark {
-  background: #1f2937;
+.chip:hover {
+  background: var(--surface-3);
 }
 
 .chip-green {
-  background: #2f7d4f;
+  border-left-color: var(--forest-400);
 }
 
 .chip-gray {
-  background: #9ca3af;
+  border-left-color: var(--ink-200);
+  color: var(--text-2);
 }
 
 .chip-more {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--text-3);
   padding-left: 4px;
 }
 
+/* ---------- 当天明细 ---------- */
 .side {
   flex: 1;
   min-width: 300px;
 }
 
 .side-card {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  padding: 18px 20px;
   min-height: 300px;
 }
 
@@ -393,49 +437,56 @@ onMounted(load);
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 14px;
+  gap: 10px;
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
 }
 
 .side-date {
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
-}
-
-.side-count {
-  font-size: 12px;
-  color: #6b7280;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-1);
 }
 
 .iv-row {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  margin-bottom: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.iv-row:last-child {
+  border-bottom: none;
 }
 
 .iv-time {
-  font-size: 13px;
-  font-weight: 600;
-  color: #111827;
-  padding-top: 14px;
   width: 44px;
   flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  padding-top: 2px;
 }
 
 .iv-card {
   flex: 1;
+  min-width: 0;
   display: flex;
   gap: 12px;
-  background: #f7f6f3;
-  border-radius: 10px;
-  padding: 12px;
+  align-items: flex-start;
   cursor: pointer;
-  transition: background 0.15s;
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  margin: -4px -6px;
+  transition: background-color 0.18s var(--ease);
 }
 
 .iv-card:hover {
-  background: #efede8;
+  background: var(--surface-3);
 }
 
 .iv-avatar {
@@ -448,29 +499,26 @@ onMounted(load);
 
 .iv-name {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: #111827;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
 }
 
 .iv-sub {
-  margin: 3px 0 6px;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.iv-tag {
-  display: inline-block;
-  font-size: 11px;
-  border-radius: 5px;
-  padding: 1px 8px;
-  color: #ffffff;
+  margin: 3px 0 7px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.6;
 }
 
 @media (max-width: 900px) {
+  .page {
+    padding: 16px 16px 28px;
+  }
+
   .sched {
     flex-direction: column;
-    padding: 10px;
+    gap: 12px;
   }
 
   .cal-wrap,
@@ -481,19 +529,21 @@ onMounted(load);
   }
 
   .cal-header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
+    padding: 14px 14px 12px;
   }
 
   .day-cell {
-    min-height: 64px;
-    padding: 4px;
+    min-height: 62px;
+    padding: 6px 4px;
   }
 
   .chip {
     font-size: 10px;
-    padding: 0 4px;
+    padding: 1px 4px;
+  }
+
+  .side-card {
+    padding: 16px 14px;
   }
 }
 </style>

@@ -56,7 +56,14 @@ defineExpose({ reload: load });
 </script>
 
 <template>
-  <el-drawer v-model="visible" title="用人需求进度" size="640px">
+  <el-drawer v-model="visible" size="640px">
+    <template #header>
+      <div class="drawer-head">
+        <div class="eyebrow">Requirements</div>
+        <p class="drawer-title">用人需求进度</p>
+      </div>
+    </template>
+
     <div v-loading="loading" class="body">
       <el-empty v-if="!requirements.length && !loading" description="暂无需求记录" :image-size="80" />
       <div v-for="r in requirements" :key="r.id" class="req-item">
@@ -79,8 +86,8 @@ defineExpose({ reload: load });
         <div v-if="r.description" class="req-desc">{{ r.description }}</div>
         <div class="req-foot">
           <span>提交人：{{ r.creator?.username ?? "—" }}</span>
-          <span>已推荐 {{ r._count.recommendations }} 人</span>
-          <span>{{ fmtTime(r.createdAt) }}</span>
+          <span>已推荐 <span class="req-count">{{ r._count.recommendations }}</span> 人</span>
+          <span class="req-time">{{ fmtTime(r.createdAt) }}</span>
         </div>
       </div>
       <div v-if="total > pageSize" class="pager">
@@ -98,45 +105,97 @@ defineExpose({ reload: load });
 </template>
 
 <style scoped>
+.drawer-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.drawer-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-1);
+}
+
 .body {
-  padding-bottom: 16px;
+  padding-bottom: 8px;
 }
+
+/* 条目之间只用一条细线分隔，不套卡片 */
 .req-item {
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin-bottom: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
 }
+
+.req-item:first-of-type {
+  padding-top: 2px;
+}
+
+.req-item:last-of-type {
+  border-bottom: none;
+}
+
 .req-head {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
+
 .req-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
+  color: var(--text-1);
 }
+
 .req-meta {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #606266;
+  margin-top: 7px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-2);
 }
+
 .req-desc {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 13px;
-  color: #606266;
+  line-height: 1.75;
+  color: var(--text-1);
   white-space: pre-wrap;
 }
+
 .req-foot {
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   font-size: 12px;
-  color: #909399;
+  color: var(--text-3);
 }
+
+.req-count {
+  color: var(--forest-700);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.req-time {
+  font-variant-numeric: tabular-nums;
+}
+
 .pager {
   display: flex;
   justify-content: flex-end;
-  margin-top: 12px;
+  margin-top: 14px;
+}
+</style>
+
+<style>
+/* 抽屉内容被 teleport 到 body，:deep() 无法命中，这里用全局规则限制小屏宽度 */
+@media (max-width: 900px) {
+  .el-drawer {
+    max-width: 100vw;
+  }
 }
 </style>
