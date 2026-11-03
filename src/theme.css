@@ -83,12 +83,15 @@
   --text-3: #8a918c;
   --text-invert: #ffffff;
 
-  /* 字体 */
+  /* 字体：拉丁走 Instrument，中文按系统优先级回落
+     补上华为 / 小米 / 思源等国产系统字体，避免 Windows 上一律压到微软雅黑 */
   --font-sans:
-    "Instrument Sans", "Inter", -apple-system, BlinkMacSystemFont, "Avenir Next",
-    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    "Instrument Sans", -apple-system, BlinkMacSystemFont, "PingFang SC", "HarmonyOS Sans SC",
+    "MiSans", "Hiragino Sans GB", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei",
+    system-ui, sans-serif;
   --font-serif:
-    "Noto Serif SC", "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif;
+    "Noto Serif SC", "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC", "STSong", "SimSun",
+    serif;
   --font-display: "Instrument Serif", "Noto Serif SC", "Songti SC", serif;
 
   /* 圆角 / 阴影 / 动效 */
@@ -186,7 +189,7 @@
   --el-border-radius-round: 999px;
   --el-border-radius-circle: 100%;
 
-  --el-font-size-base: 13.5px;
+  --el-font-size-base: 14px;
   --el-font-size-small: 13px;
   --el-font-size-extra-small: 12px;
   --el-font-size-medium: 15px;
@@ -223,8 +226,8 @@ body {
   background-color: var(--canvas);
   color: var(--text-1);
   font-family: var(--font-sans);
-  font-size: 13.5px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.62;
   letter-spacing: -0.004em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -297,10 +300,10 @@ a {
 
 .page-head .ph-title {
   font-family: var(--font-serif);
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 400;
-  letter-spacing: 0.01em;
-  line-height: 1.3;
+  letter-spacing: 0.005em;
+  line-height: 1.35;
 }
 
 .page-head .ph-desc {
@@ -379,7 +382,7 @@ a {
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
   font-weight: 600;
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .el-card__body {
@@ -400,7 +403,7 @@ a {
   --el-table-row-hover-bg-color: #fafaf8;
   --el-table-bg-color: var(--surface);
   --el-table-tr-bg-color: var(--surface);
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--text-1);
 }
 
@@ -561,10 +564,10 @@ a {
    -------------------------------------------------------------------------- */
 .el-form-item__label {
   color: var(--text-2);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  padding-bottom: 5px;
+  padding-bottom: 6px;
   line-height: 1.4;
 }
 
@@ -600,7 +603,7 @@ a {
 .el-select__placeholder,
 .el-select__selected-item,
 .el-textarea__inner {
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--text-1);
 }
 
@@ -679,7 +682,7 @@ a {
 
 .el-dialog__title {
   font-family: var(--font-serif);
-  font-size: 16.5px;
+  font-size: 17px;
   font-weight: 400;
   letter-spacing: 0.01em;
   color: var(--text-1);
