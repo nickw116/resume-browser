@@ -128,7 +128,9 @@ async function load() {
   try {
     const params = new URLSearchParams();
     params.set("published", "1");
-    params.set("status", "ACCEPTED");
+    // 日历展示所有「已排面试」的候选人：待面试 + 面试完成后的状态
+    // （面试完成会改写 status，只查 ACCEPTED 会让已完成的记录从日程中消失）
+    params.set("status", "ACCEPTED,PASSED,FAILED,ONBOARDED,ONBOARD_DECLINED");
     params.set("pageSize", "500");
     const d = await api<{ candidates: CandidateRow[] }>(`/api/candidates?${params.toString()}`);
     const items: InterviewItem[] = [];
